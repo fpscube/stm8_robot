@@ -31,6 +31,11 @@
 *.out
 *.app
 *.ihx
+*.asm
+*.lst
+*.rel
+*.rst
+*.sym
 *.lk
 *.map
 *.cdb
