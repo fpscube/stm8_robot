@@ -13,5 +13,6 @@ while (1):
     if(counter<1):
         counter=1
         inc=0.5
+
     print (counter)
 

@@ -160,8 +160,7 @@ int main(void)
     }
     /* timer 2  init */
     {
-        const uint16_t tim2_prescaler = 16;
-        TIM2_PSCR =  tim2_prescaler ; 
+        TIM2_PSCR =  4 ; // 16 2⁴
 
         const uint16_t tim2_auto_reload = 10000; // 10 ms = 100Hz
         TIM2_ARRH = (tim2_auto_reload >> 8);
