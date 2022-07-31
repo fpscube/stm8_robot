@@ -1,0 +1,10 @@
+    
+- codage du protocole en C encode/decode
+    - magique num 
+    - on/off 1 bit pos 5bit speed 2bits 
+    - checksum
+    - 7 octets 
+
+- test unitaire des deux fonctions dans une appli en c
+- test sur STM8 en auto anim
+- test avec la liaison radio
