@@ -1,4 +1,4 @@
-#include "robotFrame.h"
+#include "robotUtils.h"
 #include "stdio.h"
 
 int nbTestKO=0;
@@ -19,31 +19,22 @@ void printMotoInfo(T_robotData *pRobotData,int pMotor)
 
 int main()
 {
-    T_robotCmdData lRobotCmdDataIn;
+    T_robotCmdData lRobotCmdDataIn=
+    {
+        {
+            //poweron, cmdangle, speed
+            {       0,     -1.0,  0.75},
+            {       1,      1.0,  0.35},
+            {       0,      0.0,  0.00},
+            {       1,      0.5,  1.00},
+            {       1,     -0.2,  0.86}
+        }
+    };
+
     T_robotCmdData lRobotCmdDataOut={0};
     T_robotData lRobotData={0};
 
-    lRobotCmdDataIn.motor[0].cmdAngle = -1.0;
-    lRobotCmdDataIn.motor[1].cmdAngle = 1.0;
-    lRobotCmdDataIn.motor[2].cmdAngle = 0.0;
-    lRobotCmdDataIn.motor[3].cmdAngle = 0.5;
-    lRobotCmdDataIn.motor[4].cmdAngle = -0.2;
-
-
-    lRobotCmdDataIn.motor[0].powerOn = 0;
-    lRobotCmdDataIn.motor[1].powerOn = 1;
-    lRobotCmdDataIn.motor[2].powerOn = 0;
-    lRobotCmdDataIn.motor[3].powerOn = 1;
-    lRobotCmdDataIn.motor[4].powerOn = 1;
-
-
-    lRobotCmdDataIn.motor[0].speed = 0.75;
-    lRobotCmdDataIn.motor[1].speed = 0.35;
-    lRobotCmdDataIn.motor[2].speed = 0.0;
-    lRobotCmdDataIn.motor[3].speed = 1.0;
-    lRobotCmdDataIn.motor[4].speed = 0.86;
-
-    T_robotframe lRobotFrame={0};
+    T_robotFrame lRobotFrame={0};
     uint8_t lBuffer[1000];
 
     robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
@@ -109,7 +100,7 @@ int main()
 
     if(!FLOAT_EQUALS(lRobotData.motor[0].angle,-1.0f)) nbTestKO++;
     if(!FLOAT_EQUALS(lRobotData.motor[1].angle,0.6666f)) nbTestKO++;
-    if(!FLOAT_EQUALS(lRobotData.motor[2].angle,0.000f)) nbTestKO++;
+    if(!FLOAT_EQUALS(lRobotData.motor[2].angle,-0.0323f)) nbTestKO++;
     if(!FLOAT_EQUALS(lRobotData.motor[3].angle,0.4839f)) nbTestKO++;
     if(!FLOAT_EQUALS(lRobotData.motor[4].angle,-0.2258f)) nbTestKO++;
 

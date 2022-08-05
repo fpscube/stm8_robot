@@ -1,6 +1,6 @@
 
-#ifndef _ROBOT_FRAME_H_
-#define _ROBOT_FRAME_H_
+#ifndef _ROBOT_UTILS_H_
+#define _ROBOT_UTILS_H_
 
 #include "stdint.h"
 
@@ -36,11 +36,12 @@ typedef struct
     uint8_t magicNum;
     uint8_t cmdCtrl[5];
     uint8_t checksum;
-}T_robotframe;
+}T_robotFrame;
 
 
-extern void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotframe *pRobotFrameOut);
+extern void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotFrame *pRobotFrameOut);
 extern int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut);
 extern void robotUpdateData(T_robotCmdData *pRobotCmdData,T_robotData *pRobotData,float pDeltaTimeInUs);
+extern void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInUs);
 
 #endif

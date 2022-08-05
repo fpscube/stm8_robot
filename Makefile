@@ -43,5 +43,14 @@ CCOMPILEDFILES=$(SOURCES:.c=.asm) $(SOURCES:.c=.lst) $(SOURCES:.c=.rel) \
 clean:
 	rm -f $(PROGRAM).ihx $(PROGRAM).cdb $(PROGRAM).lk $(PROGRAM).map $(CCOMPILEDFILES)
 
+test: 
+	gcc robotUtils.c robotUtilsTest.c  -o utilsTest.out
+	./utilsTest.out
+
+simu: 
+	gcc robotUtils.c robotSimuAutoAnim.c -lSDL2 -lm -o simu.out
+	./simu.out
+
+
 flash: $(PROGRAM).ihx
 	$(FLASHEXE) -c $(PROGRAMMER) -p $(DEVICE) -w $(PROGRAM).ihx

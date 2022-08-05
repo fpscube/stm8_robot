@@ -1,14 +1,15 @@
-#include "robotFrame.h"
+#include "robotUtils.h"
 
 #define K_MAGIC_NUMBER 0x7A
 
 
-void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotframe *pRobotFrameOut)
+void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotFrame *pRobotFrameOut)
 {
     pRobotFrameOut->magicNum = K_MAGIC_NUMBER;
     pRobotFrameOut->checksum = K_MAGIC_NUMBER;
     for(int i=0;i<5;i++)
     {
+        pRobotFrameOut->cmdCtrl[i]= 0;
         /* bit 0  */
         pRobotFrameOut->cmdCtrl[i] |= (pRobotDataIn->motor[i].powerOn & 0x1);
         /* bit 1-2  2 bits => res = 4 */
@@ -39,6 +40,7 @@ int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
         stc_robotDataOut.motor[stc_counter-1].speed = ((float)((pBufferByte >>1) & 0x3))/3.0;
         stc_robotDataOut.motor[stc_counter-1].cmdAngle = ((float)((pBufferByte >>3) & 0x1F))/31.0 * 2.0 - 1.0;
         stc_checksum +=pBufferByte; 
+        if(stc_robotDataOut.motor[stc_counter-1].speed ==0) stc_robotDataOut.motor[stc_counter-1].speed =0.1;
         stc_counter++;
     }
     else
@@ -61,6 +63,24 @@ int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
 
 
 #define ABS(a) ((a>=0)?a:-a)
+
+
+void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInUs)
+{
+    static int lTime=0;
+    const T_robotCmdData lScenario[]=
+    {
+        {{{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}},
+        {{{1, 1.0,0.4},{1, 1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}},
+        {{{1,-1.0,0.4},{1, 1.0,0.4},{1, 1.0,0.4},{1, 1.0,0.4},{1, 0.0,0.4}}},
+        {{{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 1.0,0.4},{1, 0.0,0.4}}},
+        {{{1, 1.0,0.4},{1,-1.0,0.4},{1, 1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}}
+    };
+    int lScenarCount = sizeof(lScenario)/sizeof(T_robotCmdData);
+    *pRobotCmdData = lScenario[(lTime/2000)%(lScenarCount)];
+    lTime+=pDeltaTimeInUs;
+
+}
 
 
 void robotUpdateData(T_robotCmdData *pRobotCmdData,T_robotData *pRobotData,float pDeltaTimeInUs)
