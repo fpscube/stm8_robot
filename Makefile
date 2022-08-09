@@ -6,9 +6,9 @@ DEVICE=stm8s103f3
 COMMONDIR = ..
 
 ## Get program name from enclosing directory name
-PROGRAM = $(lastword $(subst /, ,$(CURDIR)))
+PROGRAM = robot
 
-SOURCES=$(wildcard *.c $(COMMONDIR)/*.c)
+SOURCES=robot.c robotUtils.c
 OBJECTS=$(SOURCES:.c=.rel)
 HEADERS=$(wildcard *.h $(COMMONDIR)/*.h)
 

@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdint.h>
 #include "stm8.h"
+#include "robotUtils.h"
+
 
 
 void setPWM1(int val) // C6
@@ -201,32 +203,54 @@ int main(void)
     }
 
 
-    setPWM1(1000);
-    setPWM2(1000);
-    setPWM3(1000);
-    setPWM4(1000);
-    setPWM5(1000);
-    setPWM6(1000);
-    setPWM7(1000);
+    setPWM1(1500);
+    setPWM2(1500);
+    setPWM3(1500);
+    setPWM4(1500);
+    setPWM5(1500);
+    setPWM6(1500);
+    setPWM7(1500);
+
+    static T_robotFrame lRobotFrame;
+    static T_robotData lRobotData;
+    static T_robotCmdData lRobotCmdDataOut;
+    static T_robotCmdData lRobotCmdDataIn;
 
     while(1) 
     {
 
-        uint8_t c=(uint8_t)'A';
-        //delay(400000L);
-        if(uart_readChar(&c))
+        // uint8_t c=(uint8_t)'A';
+        // if(uart_readChar(&c))
+        // {
+        //     PB_ODR &= ~(1 << 5);
+
+            // uart_writeChar((char)c);
+            // uint16_t cmd = c*4+1000;
+            // setPWM3(cmd);
+            // setPWM4(cmd);
+            // setPWM5(cmd);
+            // setPWM6(cmd);
+            // setPWM7(cmd);
+
+        //     PB_ODR |= (1 << 5);
+        // }
+
+
+        delay(6000L);
+
+        robotAutoAnim(&lRobotCmdDataIn,10);
+        robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
+        for(int i=0;i<sizeof(T_robotFrame);i++)
         {
-            PB_ODR &= ~(1 << 5);
-            uart_writeChar((char)c);
-            uint16_t cmd = c*4+1000;
-            setPWM3(cmd);
-            setPWM4(cmd);
-            setPWM5(cmd);
-            setPWM6(cmd);
-            setPWM7(cmd);
-
-            PB_ODR |= (1 << 5);
+            uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
+            int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
         }
+        robotUpdateData(&lRobotCmdDataOut,&lRobotData,10);
 
+        setPWM3(lRobotData.motor[0].pwm);
+        setPWM4(lRobotData.motor[1].pwm);
+        setPWM5(lRobotData.motor[2].pwm);
+        setPWM6(lRobotData.motor[3].pwm);
+        setPWM7(lRobotData.motor[4].pwm);
     }
 }

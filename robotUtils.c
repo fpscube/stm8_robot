@@ -26,7 +26,7 @@ void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotFrame *pRobotFrameOut)
 
 static int stc_counter=0;
 static uint8_t stc_checksum=0;
-static T_robotCmdData stc_robotDataOut={0};
+static T_robotCmdData stc_robotDataOut;
 int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
 {
     if(stc_counter==0)
@@ -65,19 +65,25 @@ int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
 #define ABS(a) ((a>=0)?a:-a)
 
 
+// 
+//      2         1
+// Head      0          Tail
+//      4         3
+
+
 void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInUs)
 {
-    static int lTime=0;
+    static unsigned int lTime=0;
     const T_robotCmdData lScenario[]=
     {
-        {{{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}},
-        {{{1, 1.0,0.4},{1, 1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}},
-        {{{1,-1.0,0.4},{1, 1.0,0.4},{1, 1.0,0.4},{1, 1.0,0.4},{1, 0.0,0.4}}},
-        {{{1,-1.0,0.4},{1,-1.0,0.4},{1,-1.0,0.4},{1, 1.0,0.4},{1, 0.0,0.4}}},
-        {{{1, 1.0,0.4},{1,-1.0,0.4},{1, 1.0,0.4},{1,-1.0,0.4},{1, 0.0,0.4}}}
+        // center        back right   front right   back left   front left
+        {{{1, 0.3,1.0},{1, 0.6,1.0},{1, -0.6,1.0},{1, -0.6,1.0},{1, 0.6,1.0}}},
+        {{{1, -0.3,1.0},{1, 0.6,1.0},{1, -0.6,1.0},{1, -0.6,1.0},{1, 0.6,1.0}}},
+        {{{1, -0.3,1.0},{1, -0.6,1.0},{1, 0.6,1.0},{1, 0.6,1.0},{1, -0.6,1.0}}},
+        {{{1, 0.3,1.0},{1, -0.6,1.0},{1, 0.6,1.0},{1, 0.6,1.0},{1, -0.6,1.0}}}
     };
     int lScenarCount = sizeof(lScenario)/sizeof(T_robotCmdData);
-    *pRobotCmdData = lScenario[(lTime/2000)%(lScenarCount)];
+    *pRobotCmdData = lScenario[(lTime/500)%(lScenarCount)];
     lTime+=pDeltaTimeInUs;
 
 }
@@ -109,6 +115,8 @@ void robotUpdateData(T_robotCmdData *pRobotCmdData,T_robotData *pRobotData,float
     for(int mi=0;mi<5;mi++)
     {  
         float lAngle = pRobotData->motor[mi].angle;
+        // invert angle pwm moto 1&2
+        if (mi<3)  lAngle = -lAngle;
         pRobotData->motor[mi].pwm = K_PWM_0DEG + lAngle*K_PWM_90DEG_RANGE;
     }
 }

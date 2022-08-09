@@ -84,8 +84,10 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(lSdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         for(int mi=0;mi<K_NB_MOTOR;mi++)
         {
-            static const int moteurPosX[K_NB_MOTOR] = {200, 200, 600, 600, 400 };
-            static const int moteurPosY[K_NB_MOTOR] = {200, 600, 200, 600, 400 };
+
+        // center        back right   front right   back left   front right
+            static const int moteurPosX[K_NB_MOTOR] = {400, 600, 200, 600, 200 };
+            static const int moteurPosY[K_NB_MOTOR] = {400, 200, 200, 600, 600 };
             int posX = moteurPosX[mi];
             int posY = moteurPosY[mi];
             SDL_RenderDrawLine(lSdlRenderer,posX, posY, sin(lRobotData.motor[mi].angle*3.14/2.0)*100+posX, cos(lRobotData.motor[mi].angle*3.14/2.0)*100+posY);
@@ -95,7 +97,7 @@ int main(int argc, char* argv[]) {
         for (int mi=0;mi<5;mi++)
         { 
             printf("S%d:%0.2f ",mi,lRobotCmdDataOut.motor[mi].speed);
-            printf("A%d:%0.4f/%0.4f ",mi,lRobotData.motor[mi].angle,lRobotCmdDataOut.motor[mi].cmdAngle);
+            printf("A%d:%d/%0.4f ",mi,lRobotData.motor[mi].pwm,lRobotCmdDataOut.motor[mi].cmdAngle);
         }
         printf("\n");
 

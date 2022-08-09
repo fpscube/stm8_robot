@@ -5,7 +5,7 @@
 #include "stdint.h"
 
 #define K_NB_MOTOR 5
-#define K_PWM_0DEG 1000
+#define K_PWM_0DEG 1500
 #define K_PWM_90DEG_RANGE 1000
 
 typedef struct
