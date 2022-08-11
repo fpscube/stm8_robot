@@ -49,12 +49,6 @@ void setPWM7(int val) // D2
 } 
 
 
-/* Simple busy loop delay */
-void delay(unsigned long count) {
-    while (count--)
-        nop();
-}
-
 int uart_write(const char *str) {
     char i;
     for(i = 0; i < strlen(str); i++) {
@@ -96,6 +90,16 @@ int uart_readChar(char *c) {
     }
 }
 
+
+static int gUsCounter=0;
+
+/* TIM2 Update/Overflow interrupt handling routine */
+void TIM2_update(void) __interrupt(TIM2_OVR_UIF_IRQ) {
+    gUsCounter+=10;
+    // Clear Timer 2 Status Register 1 Update Interrupt Flag (UIF) (bit 0)
+    TIM2_SR1 &= ~TIM_SR1_UIF;
+}
+
 int main(void)
 {
     /* Set clock to full speed (16 Mhz) */
@@ -125,8 +129,10 @@ int main(void)
     PD_CR1 |= (1 << 3);
     PD_CR1 |= (1 << 4);
 
-    /* timer 1  init */
+    /* timer 1  init for PWM*/ 
     {
+
+        // processor is working at 16Mhz => time clock is 1Mhz => 1us
         const uint16_t tim1_prescaler = 16;
         TIM1_PSCRH = (tim1_prescaler >> 8);
         TIM1_PSCRL = (tim1_prescaler & 0xFF);
@@ -160,8 +166,9 @@ int main(void)
         TIM1_BKR |= 0x1 << 0x7; // Enable TIM1 output channels
         TIM1_CR1 |= 1; // Enable the counter
     }
-    /* timer 2  init */
+    /* timer 2  init for PWM*/
     {
+        // processor is working at 16Mhz => time clock is 1Mhz => 1us
         TIM2_PSCR =  4 ; // 16 2⁴
 
         const uint16_t tim2_auto_reload = 10000; // 10 ms = 100Hz
@@ -185,10 +192,13 @@ int main(void)
         TIM2_CCMR2 = 0x6 << 0x4; // PWM mode 1 for channel 2
         TIM2_CCMR3 = 0x6 << 0x4; // PWM mode 1 for channel 3
 
+        // TIM2_IER (Interrupt Enable Register), Update interrupt (UIE) (bit 0)
+        TIM2_IER |= TIM_IER_UIE;
+
         TIM2_EGR |= 1; // Generate an update event to register new settings
         TIM2_CR1 |= 1; // Enable the counter
     }
-
+   
     /* Setup UART1 (TX=D5 RX=D6) */
     {
         UART1_CR2 |= UART_CR2_TEN; // Transmitter enable
@@ -215,9 +225,11 @@ int main(void)
     static T_robotData lRobotData;
     static T_robotCmdData lRobotCmdDataOut;
     static T_robotCmdData lRobotCmdDataIn;
-
+    PB_ODR |= (1 << 5);
+    enableInterrupts();
     while(1) 
     {
+        
 
         // uint8_t c=(uint8_t)'A';
         // if(uart_readChar(&c))
@@ -236,16 +248,16 @@ int main(void)
         // }
 
 
-        delay(6000L);
-
-        robotAutoAnim(&lRobotCmdDataIn,10);
+        int deltaTimeUs = gUsCounter;
+        gUsCounter=0;
+        robotAutoAnim(&lRobotCmdDataIn,deltaTimeUs);
         robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
         for(int i=0;i<sizeof(T_robotFrame);i++)
         {
             uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
             int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
         }
-        robotUpdateData(&lRobotCmdDataOut,&lRobotData,10);
+        robotUpdateData(&lRobotCmdDataOut,&lRobotData,deltaTimeUs);
 
         setPWM3(lRobotData.motor[0].pwm);
         setPWM4(lRobotData.motor[1].pwm);
