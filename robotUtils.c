@@ -27,6 +27,8 @@ void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotFrame *pRobotFrameOut)
 static int stc_counter=0;
 static uint8_t stc_checksum=0;
 static T_robotCmdData stc_robotDataOut;
+
+
 int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
 {
     if(stc_counter==0)
@@ -71,7 +73,7 @@ int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
 //      4         3
 
 
-void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInUs)
+void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInMs)
 {
     static unsigned int lTime=0;
     const T_robotCmdData lScenario[]=
@@ -84,7 +86,7 @@ void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInUs)
     };
     int lScenarCount = sizeof(lScenario)/sizeof(T_robotCmdData);
     *pRobotCmdData = lScenario[(lTime/500)%(lScenarCount)];
-    lTime+=pDeltaTimeInUs;
+    lTime+=pDeltaTimeInMs;
 
 }
 

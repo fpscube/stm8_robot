@@ -221,6 +221,7 @@ int main(void)
     setPWM6(1500);
     setPWM7(1500);
 
+    static int lAutoAnim=1;
     static T_robotFrame lRobotFrame;
     static T_robotData lRobotData;
     static T_robotCmdData lRobotCmdDataOut;
@@ -250,13 +251,26 @@ int main(void)
 
         int deltaTimeUs = gUsCounter;
         gUsCounter=0;
-        robotAutoAnim(&lRobotCmdDataIn,deltaTimeUs);
-        robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
-        for(int i=0;i<sizeof(T_robotFrame);i++)
+       
+        uint8_t lByte;
+        if(uart_readChar(&lByte))
         {
-            uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
             int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
+            if(ret==1) lAutoAnim=0;
         }
+
+        if(lAutoAnim==1)
+        {
+            // robotAutoAnim(&lRobotCmdDataIn,deltaTimeUs);
+            // robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
+            // for(int i=0;i<sizeof(T_robotFrame);i++)
+            // {
+            //     uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
+            //     int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
+            // }
+            robotAutoAnim(&lRobotCmdDataOut,deltaTimeUs);
+        }
+
         robotUpdateData(&lRobotCmdDataOut,&lRobotData,deltaTimeUs);
 
         setPWM3(lRobotData.motor[0].pwm);

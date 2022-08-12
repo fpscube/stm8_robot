@@ -43,6 +43,10 @@ CCOMPILEDFILES=$(SOURCES:.c=.asm) $(SOURCES:.c=.lst) $(SOURCES:.c=.rel) \
 clean:
 	rm -f $(PROGRAM).ihx $(PROGRAM).cdb $(PROGRAM).lk $(PROGRAM).map $(CCOMPILEDFILES)
 
+serial_run: 
+	gcc serial/main.c serial/rs232-linux.c robotUtils.c -o serial_run.out
+	./serial_run.out
+
 test: 
 	gcc robotUtils.c robotUtilsTest.c  -o utilsTest.out
 	./utilsTest.out
