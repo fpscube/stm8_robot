@@ -3,123 +3,152 @@
 #define K_MAGIC_NUMBER 0x7A
 
 
-void robotFrameEncode(T_robotCmdData *pRobotDataIn,T_robotFrame *pRobotFrameOut)
+void robotEncodeCmdFrame(T_robotCmd *pRobotCmd,uint8_t pNbCmd,T_robotFrameCmd *pRobotFrameCmd)
 {
-    pRobotFrameOut->magicNum = K_MAGIC_NUMBER;
-    pRobotFrameOut->checksum = K_MAGIC_NUMBER;
-    for(int i=0;i<5;i++)
+
+    for (int i = 0;i<pNbCmd;i++)
     {
-        pRobotFrameOut->cmdCtrl[i]= 0;
-        /* bit 0  */
-        pRobotFrameOut->cmdCtrl[i] |= (pRobotDataIn->motor[i].powerOn & 0x1);
-        /* bit 1-2  2 bits => res = 4 */
-        pRobotFrameOut->cmdCtrl[i] |= (((int)(pRobotDataIn->motor[i].speed * 3)) & 0x3)<<1;
-        /* bit 3-7  6 bits => res = 32 */
-        pRobotFrameOut->cmdCtrl[i] |= (((int)(((pRobotDataIn->motor[i].cmdAngle + 1.0)/2.0) * 31.0 )) & 0x1F) <<3;
-
-        pRobotFrameOut->checksum  += pRobotFrameOut->cmdCtrl[i];
+        pRobotFrameCmd[i].magicNum = K_MAGIC_NUMBER;
+        pRobotFrameCmd[i].cmdId = pRobotCmd[i].cmdId;
+        pRobotFrameCmd[i].val = pRobotCmd[i].val;
+        pRobotFrameCmd[i].seqId = i;
+        pRobotFrameCmd[i].checksum = pRobotFrameCmd[i].magicNum + pRobotFrameCmd[i].seqId +pRobotFrameCmd[i].cmdId + pRobotFrameCmd[i].val;
     }
-
-
 
 }
 
-static int stc_counter=0;
-static uint8_t stc_checksum=0;
-static T_robotCmdData stc_robotDataOut;
 
 
-int robotFrameDecodeByByte(uint8_t pBufferByte,T_robotCmdData *pRobotDataOut)
+
+void robotDecodeAndSaveCmd(uint8_t pBufferByte,T_robotState *pRobotState)
 {
+    static int stc_counter=0;
+    static T_robotFrameCmd stc_robotFrameCmd;
+
+    ((uint8_t *)&stc_robotFrameCmd)[stc_counter]=pBufferByte;
+
     if(stc_counter==0)
     {
-        if(pBufferByte == K_MAGIC_NUMBER) stc_counter=1;
-        stc_checksum=K_MAGIC_NUMBER;
-    }
-    else if(stc_counter<6)
-    {
-        stc_robotDataOut.motor[stc_counter-1].powerOn = (pBufferByte & 0x1);
-        stc_robotDataOut.motor[stc_counter-1].speed = ((float)((pBufferByte >>1) & 0x3))/3.0;
-        stc_robotDataOut.motor[stc_counter-1].cmdAngle = ((float)((pBufferByte >>3) & 0x1F))/31.0 * 2.0 - 1.0;
-        stc_checksum +=pBufferByte; 
-        if(stc_robotDataOut.motor[stc_counter-1].speed ==0) stc_robotDataOut.motor[stc_counter-1].speed =0.1;
-        stc_counter++;
-    }
-    else
-    {
-
-        stc_counter=0;
-        if(stc_checksum==pBufferByte)
+        if(pBufferByte == K_MAGIC_NUMBER) 
         {
-            *pRobotDataOut = stc_robotDataOut;
-            return 1;
+            stc_counter=1;
         }
         else
         {
-            return -1;
+            printf("error1\n");
         }
     }
-
-    return 0;
+    else 
+    {
+        stc_counter++;
+        if(stc_counter>= sizeof(T_robotFrameCmd))
+        {
+            uint8_t lChecksum = stc_robotFrameCmd.magicNum + stc_robotFrameCmd.seqId +stc_robotFrameCmd.cmdId + stc_robotFrameCmd.val;
+            if(lChecksum== stc_robotFrameCmd.checksum)
+            {
+                pRobotState->animationCmdList[stc_robotFrameCmd.seqId].cmdId = stc_robotFrameCmd.cmdId;
+                pRobotState->animationCmdList[stc_robotFrameCmd.seqId].val = stc_robotFrameCmd.val;
+            }
+            else
+            {
+                printf("error checksum %d %d \n",lChecksum , stc_robotFrameCmd.checksum);
+            }
+            stc_counter=0;
+        }
+    }
 }
 
 
 #define ABS(a) ((a>=0)?a:-a)
 
-
-// 
-//      2         1
-// Head      0          Tail
-//      4         3
-
-
-void robotAutoAnim(T_robotCmdData *pRobotCmdData,int pDeltaTimeInMs)
+void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
 {
-    static unsigned int lTime=0;
-    const T_robotCmdData lScenario[]=
+    T_robotCmd lCurrRoboCmd =  pRobotState->animationCmdList[pRobotState->animationCounter];
+    printf("animid:%d,cmdid:%d\n",pRobotState->animationCounter,lCurrRoboCmd.cmdId);
+    switch(lCurrRoboCmd.cmdId)
     {
-        // center        back right   front right   back left   front left
-        {{{1, 0.3,1.0},{1, 0.6,1.0},{1, -0.6,1.0},{1, -0.6,1.0},{1, 0.6,1.0}}},
-        {{{1, -0.3,1.0},{1, 0.6,1.0},{1, -0.6,1.0},{1, -0.6,1.0},{1, 0.6,1.0}}},
-        {{{1, -0.3,1.0},{1, -0.6,1.0},{1, 0.6,1.0},{1, 0.6,1.0},{1, -0.6,1.0}}},
-        {{{1, 0.3,1.0},{1, -0.6,1.0},{1, 0.6,1.0},{1, 0.6,1.0},{1, -0.6,1.0}}}
-    };
-    int lScenarCount = sizeof(lScenario)/sizeof(T_robotCmdData);
-    *pRobotCmdData = lScenario[(lTime/500)%(lScenarCount)];
-    lTime+=pDeltaTimeInMs;
+        case K_ROBOT_CMD_SELECT_MOTOR:
+            pRobotState->selectedMotor = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_ROBOT_CMD_SET_SPEED:
+            pRobotState->motor[pRobotState->selectedMotor].speedLimit = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_ROBOT_CMD_SET_ANGLE:
+            pRobotState->motor[pRobotState->selectedMotor].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_ROBOT_CMD_HALT:
+            pRobotState->halt = lCurrRoboCmd.val;
+            break;
+        case K_ROBOT_CMD_REPEAT:
+            pRobotState->animationCounter=0;
+            break;
+        case K_ROBOT_CMD_SET_ALL_SPEED:
+            pRobotState->motor[0].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[1].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[2].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[3].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[4].speedLimit = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_ROBOT_CMD_SET_ALL_ANGLE:
+            pRobotState->motor[0].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[1].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[2].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[3].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[4].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_ROBOT_CMD_WAIT_100MS:
+            if(pRobotState->wating==0)
+            {
+                pRobotState->watingCounter = lCurrRoboCmd.val;
+                pRobotState->wating=1;
+            }
+            else
+            {
+                pRobotState->watingCounter -= pDeltaTimeInUs/100000;
+                if(pRobotState->watingCounter<=0)
+                {
+                    pRobotState->wating=0;
+                    pRobotState->animationCounter++;
+                }
+            }
+            break;
+        default:
+            pRobotState->animationCounter=0;
+            break;
+    }
 
-}
-
-
-void robotUpdateData(T_robotCmdData *pRobotCmdData,T_robotData *pRobotData,float pDeltaTimeInUs)
-{
     for(int mi=0;mi<5;mi++)
     {        
-        float lAngle = pRobotData->motor[mi].angle;
-        float lCmdAngle = pRobotCmdData->motor[mi].cmdAngle;
-        float lMaxDeltaAngle = pRobotCmdData->motor[mi].speed*pDeltaTimeInUs/1000;
-        float lErrorAngle = lCmdAngle - lAngle;
+        float lAngle = pRobotState->motor[mi].angle;
+        float lOrderAngle = pRobotState->motor[mi].orderAngle;
+        float lMaxDeltaAngle = pRobotState->motor[mi].speedLimit*pDeltaTimeInUs/1000000;
+        float lErrorAngle = lOrderAngle - lAngle;
 
         if(ABS(lErrorAngle) < lMaxDeltaAngle)
         {
-            pRobotData->motor[mi].angle = lCmdAngle;
+            pRobotState->motor[mi].angle = lOrderAngle;
         }
         else
         {
             if(lErrorAngle>0)
-                pRobotData->motor[mi].angle = lAngle+lMaxDeltaAngle;
+                pRobotState->motor[mi].angle = lAngle+lMaxDeltaAngle;
             else
-                pRobotData->motor[mi].angle = lAngle-lMaxDeltaAngle;
+                pRobotState->motor[mi].angle = lAngle-lMaxDeltaAngle;
         }
 
     }
 
     for(int mi=0;mi<5;mi++)
     {  
-        float lAngle = pRobotData->motor[mi].angle;
+        float lAngle = pRobotState->motor[mi].angle/180.0;
         // invert angle pwm moto 1&2
-        if (mi<3)  lAngle = -lAngle;
-        pRobotData->motor[mi].pwm = K_PWM_0DEG + lAngle*K_PWM_90DEG_RANGE;
+        if (mi<3)  lAngle = 1.0-lAngle;
+        pRobotState->motor[mi].pwm =  K_PWM_START + lAngle*K_PWM_RANGE_180;
     }
 }
 

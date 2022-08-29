@@ -9,15 +9,15 @@ int nbTestOK=0;
 #define K_FLOAT_EPSILON   (float)1.0E-03
 #define FLOAT_EQUALS(pX,pY) ((pX <  pY + K_FLOAT_EPSILON ) && (pX > pY - K_FLOAT_EPSILON ))
 
-void printMotoCmdInfo(T_robotCmdData *pRobotCmdData,int pMotor)
-{
-    printf("motor %d  powerOn:%d  angle:%f speed %f\n",pMotor,pRobotCmdData->motor[pMotor].powerOn,pRobotCmdData->motor[pMotor].cmdAngle,pRobotCmdData->motor[pMotor].speed);
-}
+// void printMotoCmdInfo(T_robotCmdData *pRobotCmdData,int pMotor)
+// {
+//     printf("motor %d  angle:%f speed %d\n",pMotor,pRobotCmdData->motor[pMotor].cmdAngle,pRobotCmdData->motor[pMotor].speed);
+// }
 
-void printMotoInfo(T_robotData *pRobotData,int pMotor)
-{
-    printf("motor %d  angle:%f pwm %d\n",pMotor,pRobotData->motor[pMotor].angle,pRobotData->motor[pMotor].pwm);
-}
+// void printMotoInfo(T_robotData *pRobotData,int pMotor)
+// {
+//     printf("motor %d  angle:%f pwm %d\n",pMotor,pRobotData->motor[pMotor].angle,pRobotData->motor[pMotor].pwm);
+// }
 
 
 
@@ -40,13 +40,6 @@ int main(int argc, char* argv[]) {
         return 3;
     }
 
-
-    T_robotFrame lRobotFrame={0};
-    T_robotData lRobotData={0};
-    T_robotCmdData lRobotCmdDataOut={0};
-    T_robotCmdData lRobotCmdDataIn={0};
-
-
     while(1)
     {
 
@@ -65,20 +58,69 @@ int main(int argc, char* argv[]) {
             }
             
         }
-        robotAutoAnim(&lRobotCmdDataIn,100);
 
-        robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
+//     {
+//         // center        back right   front right   back left   front left
+//         {{{0.3,1},{0.6,1},{-0.6,1},{-0.6,1},{0.6,1}}},
+//         {{{-0.3,1},{0.6,1},{-0.6,1},{-0.6,1},{0.6,1}}},
+//         {{{-0.3,1},{-0.6,1},{0.6,1},{0.6,1},{-0.6,1}}},
+//         {{{0.3,1},{-0.6,1},{0.6,1},{0.6,1},{-0.6,1}}}
+//     };
+        static T_robotCmd stc_robotCmdBuffer[]=
+        {
+            {K_ROBOT_CMD_SET_ALL_SPEED,50},
+
+            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,117},
+            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {K_ROBOT_CMD_WAIT_100MS,20},
+
+
+            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,63},
+            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {K_ROBOT_CMD_WAIT_100MS,20},
+
+
+
+            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,63},
+            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {K_ROBOT_CMD_WAIT_100MS,20},
+
+
+            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,117},
+            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,144},
+            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,36},
+            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,144},
+            {K_ROBOT_CMD_WAIT_100MS,20},
+        };
+        static T_robotFrameCmd stc_robotFrameCmd[256];
+        static T_robotState stc_robotState;
+
+        int lNbCmd = sizeof(stc_robotCmdBuffer)/sizeof(T_robotCmd);
+
+
+        robotEncodeCmdFrame(stc_robotCmdBuffer,lNbCmd,stc_robotFrameCmd);
            
         /* bit 0  */
         /* bit 1-2  2 bits => res = 4 */
         /* bit 3-7  6 bits => res = 32 */
-        for(int i=0;i<sizeof(T_robotFrame);i++)
+        for(int i=0;i<(lNbCmd * sizeof(T_robotFrameCmd));i++)
         {
-            uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
-            int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
+            uint8_t  lByte = ((uint8_t*)&stc_robotFrameCmd)[i];
+            robotDecodeAndSaveCmd(lByte,&stc_robotState);
+            
         }
-        SDL_Delay(100);
-        robotUpdateData(&lRobotCmdDataOut,&lRobotData,100);
+        SDL_Delay(10);
+        robotUpdateState(&stc_robotState,10000);
 
 
         SDL_SetRenderDrawColor(lSdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -90,14 +132,14 @@ int main(int argc, char* argv[]) {
             static const int moteurPosY[K_NB_MOTOR] = {400, 200, 200, 600, 600 };
             int posX = moteurPosX[mi];
             int posY = moteurPosY[mi];
-            SDL_RenderDrawLine(lSdlRenderer,posX, posY, sin(lRobotData.motor[mi].angle*3.14/2.0)*100+posX, cos(lRobotData.motor[mi].angle*3.14/2.0)*100+posY);
+            SDL_RenderDrawLine(lSdlRenderer,posX, posY, sin(stc_robotState.motor[mi].angle*3.14/180)*100+posX, cos(stc_robotState.motor[mi].angle*3.14/180)*100+posY);
 
         }
 
         for (int mi=0;mi<5;mi++)
         { 
-            printf("S%d:%0.2f ",mi,lRobotCmdDataOut.motor[mi].speed);
-            printf("A%d:%d/%0.4f ",mi,lRobotData.motor[mi].pwm,lRobotCmdDataOut.motor[mi].cmdAngle);
+            //printf("S%d:%d ",mi,lRobotCmdDataOut.motor[mi].speed);
+            printf("A%d:%d/%0.4f ",mi,stc_robotState.motor[mi].pwm,stc_robotState.motor[mi].angle);
         }
         printf("\n");
 
