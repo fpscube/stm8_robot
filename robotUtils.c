@@ -33,10 +33,6 @@ void robotDecodeAndSaveCmd(uint8_t pBufferByte,T_robotState *pRobotState)
         {
             stc_counter=1;
         }
-        else
-        {
-            printf("error1\n");
-        }
     }
     else 
     {
@@ -49,10 +45,6 @@ void robotDecodeAndSaveCmd(uint8_t pBufferByte,T_robotState *pRobotState)
                 pRobotState->animationCmdList[stc_robotFrameCmd.seqId].cmdId = stc_robotFrameCmd.cmdId;
                 pRobotState->animationCmdList[stc_robotFrameCmd.seqId].val = stc_robotFrameCmd.val;
             }
-            else
-            {
-                printf("error checksum %d %d \n",lChecksum , stc_robotFrameCmd.checksum);
-            }
             stc_counter=0;
         }
     }
@@ -63,45 +55,70 @@ void robotDecodeAndSaveCmd(uint8_t pBufferByte,T_robotState *pRobotState)
 
 void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
 {
-    T_robotCmd lCurrRoboCmd =  pRobotState->animationCmdList[pRobotState->animationCounter];
-    printf("animid:%d,cmdid:%d\n",pRobotState->animationCounter,lCurrRoboCmd.cmdId);
+    T_robotCmd lCurrRoboCmd;
+    lCurrRoboCmd =  pRobotState->animationCmdList[pRobotState->animationCounter];
     switch(lCurrRoboCmd.cmdId)
     {
-        case K_ROBOT_CMD_SELECT_MOTOR:
-            pRobotState->selectedMotor = lCurrRoboCmd.val;
+        case K_CMD_SPEED:
+            pRobotState->motor[K_MOTOR_CENTER].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_FRONT_LEFT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_FRONT_RIGHT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_BACK_LEFT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_BACK_RIGHT].speedLimit = lCurrRoboCmd.val;
             pRobotState->animationCounter++;
             break;
-        case K_ROBOT_CMD_SET_SPEED:
-            pRobotState->motor[pRobotState->selectedMotor].speedLimit = lCurrRoboCmd.val;
+        case K_CMD_SPEED_MIDLE:
+            pRobotState->motor[K_MOTOR_CENTER].speedLimit = lCurrRoboCmd.val;
             pRobotState->animationCounter++;
             break;
-        case K_ROBOT_CMD_SET_ANGLE:
-            pRobotState->motor[pRobotState->selectedMotor].orderAngle = lCurrRoboCmd.val;
+        case K_CMD_SPEED_FRONT_LEFT:
+            pRobotState->motor[K_MOTOR_FRONT_LEFT].speedLimit = lCurrRoboCmd.val;
             pRobotState->animationCounter++;
             break;
-        case K_ROBOT_CMD_HALT:
+        case K_CMD_SPEED_FRONT_RIGHT:
+            pRobotState->motor[K_MOTOR_FRONT_RIGHT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_SPEED_BACK_LEFT:
+            pRobotState->motor[K_MOTOR_BACK_LEFT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_SPEED_BACK_RIGHT:
+            pRobotState->motor[K_MOTOR_BACK_RIGHT].speedLimit = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE:
+            pRobotState->motor[K_MOTOR_CENTER].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_FRONT_LEFT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_FRONT_RIGHT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_BACK_LEFT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->motor[K_MOTOR_BACK_RIGHT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE_MIDLE:
+            pRobotState->motor[K_MOTOR_CENTER].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE_FRONT_LEFT:
+            pRobotState->motor[K_MOTOR_FRONT_LEFT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE_FRONT_RIGHT:
+            pRobotState->motor[K_MOTOR_FRONT_RIGHT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE_BACK_LEFT:
+            pRobotState->motor[K_MOTOR_BACK_LEFT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_ANGLE_BACK_RIGHT:
+            pRobotState->motor[K_MOTOR_BACK_RIGHT].orderAngle = lCurrRoboCmd.val;
+            pRobotState->animationCounter++;
+            break;
+        case K_CMD_HALT:
             pRobotState->halt = lCurrRoboCmd.val;
             break;
-        case K_ROBOT_CMD_REPEAT:
-            pRobotState->animationCounter=0;
-            break;
-        case K_ROBOT_CMD_SET_ALL_SPEED:
-            pRobotState->motor[0].speedLimit = lCurrRoboCmd.val;
-            pRobotState->motor[1].speedLimit = lCurrRoboCmd.val;
-            pRobotState->motor[2].speedLimit = lCurrRoboCmd.val;
-            pRobotState->motor[3].speedLimit = lCurrRoboCmd.val;
-            pRobotState->motor[4].speedLimit = lCurrRoboCmd.val;
-            pRobotState->animationCounter++;
-            break;
-        case K_ROBOT_CMD_SET_ALL_ANGLE:
-            pRobotState->motor[0].orderAngle = lCurrRoboCmd.val;
-            pRobotState->motor[1].orderAngle = lCurrRoboCmd.val;
-            pRobotState->motor[2].orderAngle = lCurrRoboCmd.val;
-            pRobotState->motor[3].orderAngle = lCurrRoboCmd.val;
-            pRobotState->motor[4].orderAngle = lCurrRoboCmd.val;
-            pRobotState->animationCounter++;
-            break;
-        case K_ROBOT_CMD_WAIT_100MS:
+        case K_CMD_WAIT_100MS:
             if(pRobotState->wating==0)
             {
                 pRobotState->watingCounter = lCurrRoboCmd.val;
@@ -117,7 +134,7 @@ void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
                 }
             }
             break;
-        default:
+        default: // REPEAT
             pRobotState->animationCounter=0;
             break;
     }

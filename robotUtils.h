@@ -10,14 +10,23 @@
 
 typedef enum
 {
- K_ROBOT_CMD_REPEAT =0,
- K_ROBOT_CMD_SELECT_MOTOR,
- K_ROBOT_CMD_SET_SPEED,
- K_ROBOT_CMD_SET_ANGLE,
- K_ROBOT_CMD_WAIT_100MS,
- K_ROBOT_CMD_HALT,
- K_ROBOT_CMD_SET_ALL_SPEED,
- K_ROBOT_CMD_SET_ALL_ANGLE
+    K_CMD_REPEAT =0,
+    K_CMD_SPEED,
+    K_CMD_SPEED_MIDLE,
+    K_CMD_SPEED_FRONT_LEFT,
+    K_CMD_SPEED_FRONT_RIGHT,
+    K_CMD_SPEED_BACK_LEFT,
+    K_CMD_SPEED_BACK_RIGHT,
+    K_CMD_ANGLE,
+    K_CMD_ANGLE_MIDLE,
+    K_CMD_ANGLE_FRONT_LEFT,
+    K_CMD_ANGLE_FRONT_RIGHT,
+    K_CMD_ANGLE_BACK_LEFT,
+    K_CMD_ANGLE_BACK_RIGHT,
+    K_CMD_WAIT_100MS,
+    K_CMD_HALT,
+    K_CMD_SET_ALL_SPEED,
+    K_CMD_SET_ALL_ANGLE
 }T_robotCmdId;
 
 typedef enum
@@ -50,7 +59,6 @@ typedef struct
 { 
     int animationCounter;
     T_robotCmd animationCmdList[255];
-    int selectedMotor;
     int halt;
     float watingCounter;
     int wating;

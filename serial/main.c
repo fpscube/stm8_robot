@@ -26,11 +26,44 @@ int main(void)
         exit(0);
     }
 
-    T_robotCmdData lRobotData;
-    T_robotFrame lRobotFrameOut;
-     struct timespec spec;
-     clock_gettime(CLOCK_REALTIME, &spec);
-     long prevtimeinus = spec.tv_nsec/1000;
+   static T_robotCmd stc_robotCmdBuffer[]=
+        {
+            {K_CMD_SPEED,200},
+
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20}
+        };
+    T_robotFrameCmd lRobotFrameOut[1000];
+
+    robotEncodeCmdFrame(stc_robotCmdBuffer,sizeof(stc_robotCmdBuffer)/sizeof(T_robotCmd),&lRobotFrameOut);
+    struct timespec spec;
+    clock_gettime(CLOCK_REALTIME, &spec);
+    long prevtimeinus = spec.tv_nsec/1000;
 
     while(1)
     {
@@ -38,11 +71,10 @@ int main(void)
         clock_gettime(CLOCK_REALTIME, &spec);
         long deltaTime = spec.tv_nsec/1000 - prevtimeinus;
         prevtimeinus =  spec.tv_nsec/1000;
-        robotAutoAnim(&lRobotData,60);
-        robotFrameEncode(&lRobotData,&lRobotFrameOut);
-        comWrite(portId,(const char * )&lRobotFrameOut,sizeof(lRobotFrameOut));
-        printf("%ld New Frame %d octets m0:%f \n" ,spec.tv_nsec/1000,(int)sizeof(lRobotFrameOut),lRobotData.motor[0].cmdAngle );
-        usleep(100000);
+        int sizeToSend= sizeof(stc_robotCmdBuffer)/sizeof(T_robotCmd) * sizeof(T_robotFrameCmd);
+        comWrite(portId,(const char * )&lRobotFrameOut,sizeToSend);
+        printf("%ld New Frame %d octets m0:%f \n" ,spec.tv_nsec/1000,sizeToSend);
+        usleep(1000000);
       
     }
 }

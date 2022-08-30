@@ -91,11 +91,11 @@ int uart_readChar(char *c) {
 }
 
 
-static int gUsCounter=0;
+static int gMsCounter=0;
 
 /* TIM2 Update/Overflow interrupt handling routine */
 void TIM2_update(void) __interrupt(TIM2_OVR_UIF_IRQ) {
-    gUsCounter+=10;
+    gMsCounter+=10;
     // Clear Timer 2 Status Register 1 Update Interrupt Flag (UIF) (bit 0)
     TIM2_SR1 &= ~TIM_SR1_UIF;
 }
@@ -222,12 +222,52 @@ int main(void)
     setPWM7(1500);
 
     static int lAutoAnim=1;
-    static T_robotFrame lRobotFrame;
-    static T_robotData lRobotData;
-    static T_robotCmdData lRobotCmdDataOut;
-    static T_robotCmdData lRobotCmdDataIn;
+    static T_robotState lRobotState;
+
+
+    static T_robotCmd stc_standardAnim[]=
+        {
+            {K_CMD_SPEED,50},
+
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20},
+
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20}
+    };
+
+    //copie standard anim
+    for(int i=0;i<sizeof(stc_standardAnim)/sizeof(T_robotCmd);i++)
+    {
+        lRobotState.animationCmdList[i]=stc_standardAnim[i];
+    }
+
+
     PB_ODR |= (1 << 5);
     enableInterrupts();
+    static int enable=0;
     while(1) 
     {
         
@@ -249,34 +289,26 @@ int main(void)
         // }
 
 
-        int deltaTimeUs = gUsCounter;
-        gUsCounter=0;
+        int deltaTimeMs = gMsCounter;
+        gMsCounter=0;
        
         uint8_t lByte;
         if(uart_readChar(&lByte))
         {
-            int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
-            if(ret==1) lAutoAnim=0;
+            
+            robotDecodeAndSaveCmd(lByte,&lRobotState);
+            enable=1;
         }
 
-        if(lAutoAnim==1)
+        if(enable)
         {
-            // robotAutoAnim(&lRobotCmdDataIn,deltaTimeUs);
-            // robotFrameEncode(&lRobotCmdDataIn,&lRobotFrame);
-            // for(int i=0;i<sizeof(T_robotFrame);i++)
-            // {
-            //     uint8_t  lByte = ((uint8_t*)&lRobotFrame)[i];
-            //     int ret = robotFrameDecodeByByte(lByte,&lRobotCmdDataOut);
-            // }
-            robotAutoAnim(&lRobotCmdDataOut,deltaTimeUs);
+            robotUpdateState(&lRobotState,deltaTimeMs*1000);
+
+            setPWM3(lRobotState.motor[0].pwm);
+            setPWM4(lRobotState.motor[1].pwm);
+            setPWM5(lRobotState.motor[2].pwm);
+            setPWM6(lRobotState.motor[3].pwm);
+            setPWM7(lRobotState.motor[4].pwm);
         }
-
-        robotUpdateData(&lRobotCmdDataOut,&lRobotData,deltaTimeUs);
-
-        setPWM3(lRobotData.motor[0].pwm);
-        setPWM4(lRobotData.motor[1].pwm);
-        setPWM5(lRobotData.motor[2].pwm);
-        setPWM6(lRobotData.motor[3].pwm);
-        setPWM7(lRobotData.motor[4].pwm);
     }
 }

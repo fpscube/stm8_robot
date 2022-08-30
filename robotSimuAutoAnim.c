@@ -68,39 +68,35 @@ int main(int argc, char* argv[]) {
 //     };
         static T_robotCmd stc_robotCmdBuffer[]=
         {
-            {K_ROBOT_CMD_SET_ALL_SPEED,50},
+            {K_CMD_SPEED,50},
 
-            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,117},
-            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {K_ROBOT_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
 
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,144},
+            {K_CMD_ANGLE_FRONT_RIGHT,36},
+            {K_CMD_ANGLE_BACK_RIGHT,144},
+            {K_CMD_ANGLE_BACK_LEFT,36},
+            {K_CMD_WAIT_100MS,20},
 
-            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,63},
-            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {K_ROBOT_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20},
 
-
-
-            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,63},
-            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {K_ROBOT_CMD_WAIT_100MS,20},
-
-
-            {1,K_MOTOR_CENTER}     ,{K_ROBOT_CMD_SET_ANGLE,117},
-            {1,K_MOTOR_FRONT_LEFT} ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_FRONT_RIGHT},{K_ROBOT_CMD_SET_ANGLE,144},
-            {1,K_MOTOR_BACK_RIGHT} ,{K_ROBOT_CMD_SET_ANGLE,36},
-            {1,K_MOTOR_BACK_LEFT}  ,{K_ROBOT_CMD_SET_ANGLE,144},
-            {K_ROBOT_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_FRONT_LEFT,36},
+            {K_CMD_ANGLE_FRONT_RIGHT,144},
+            {K_CMD_ANGLE_BACK_RIGHT,36},
+            {K_CMD_ANGLE_BACK_LEFT,144},
+            {K_CMD_WAIT_100MS,20}
         };
         static T_robotFrameCmd stc_robotFrameCmd[256];
         static T_robotState stc_robotState;
