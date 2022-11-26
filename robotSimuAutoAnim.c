@@ -68,35 +68,35 @@ int main(int argc, char* argv[]) {
 //     };
         static T_robotCmd stc_robotCmdBuffer[]=
         {
-            {K_CMD_SPEED,50},
+            {K_CMD_SPEED,100},
 
-            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_MIDLE,90+0},
             {K_CMD_ANGLE_FRONT_LEFT,144},
             {K_CMD_ANGLE_FRONT_RIGHT,36},
-            {K_CMD_ANGLE_BACK_RIGHT,144},
-            {K_CMD_ANGLE_BACK_LEFT,36},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_BACK_RIGHT,90+0},
+            {K_CMD_ANGLE_BACK_LEFT,90-64},
+            {K_CMD_WAIT_100MS,5},
 
-            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_MIDLE,90-30},
             {K_CMD_ANGLE_FRONT_LEFT,144},
             {K_CMD_ANGLE_FRONT_RIGHT,36},
-            {K_CMD_ANGLE_BACK_RIGHT,144},
-            {K_CMD_ANGLE_BACK_LEFT,36},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_BACK_RIGHT,90+0},
+            {K_CMD_ANGLE_BACK_LEFT,90-64},
+            {K_CMD_WAIT_100MS,5},
 
-            {K_CMD_ANGLE_MIDLE,63},
+            {K_CMD_ANGLE_MIDLE,90-30},
             {K_CMD_ANGLE_FRONT_LEFT,36},
             {K_CMD_ANGLE_FRONT_RIGHT,144},
-            {K_CMD_ANGLE_BACK_RIGHT,36},
-            {K_CMD_ANGLE_BACK_LEFT,144},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_BACK_RIGHT,90-64},
+            {K_CMD_ANGLE_BACK_LEFT,90+00},
+            {K_CMD_WAIT_100MS,5},
 
-            {K_CMD_ANGLE_MIDLE,117},
+            {K_CMD_ANGLE_MIDLE,90+0},
             {K_CMD_ANGLE_FRONT_LEFT,36},
             {K_CMD_ANGLE_FRONT_RIGHT,144},
-            {K_CMD_ANGLE_BACK_RIGHT,36},
-            {K_CMD_ANGLE_BACK_LEFT,144},
-            {K_CMD_WAIT_100MS,20}
+            {K_CMD_ANGLE_BACK_RIGHT,90-64},
+            {K_CMD_ANGLE_BACK_LEFT,90+00},
+            {K_CMD_WAIT_100MS,5}
         };
         static T_robotFrameCmd stc_robotFrameCmd[256];
         static T_robotState stc_robotState;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
             
         }
         SDL_Delay(10);
-        robotUpdateState(&stc_robotState,10000);
+        robotUpdateState(&stc_robotState,10*1000);
 
 
         SDL_SetRenderDrawColor(lSdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);

@@ -226,48 +226,84 @@ int main(void)
 
 
     static T_robotCmd stc_standardAnim[]=
-        {
-            {K_CMD_SPEED,50},
+        {      
 
-            {K_CMD_ANGLE_MIDLE,117},
-            {K_CMD_ANGLE_FRONT_LEFT,144},
-            {K_CMD_ANGLE_FRONT_RIGHT,36},
-            {K_CMD_ANGLE_BACK_RIGHT,144},
-            {K_CMD_ANGLE_BACK_LEFT,36},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_SPEED,100},
 
-            {K_CMD_ANGLE_MIDLE,63},
-            {K_CMD_ANGLE_FRONT_LEFT,144},
-            {K_CMD_ANGLE_FRONT_RIGHT,36},
-            {K_CMD_ANGLE_BACK_RIGHT,144},
-            {K_CMD_ANGLE_BACK_LEFT,36},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_MIDLE,90+65},
+            {K_CMD_ANGLE_FRONT_LEFT,90+74},
+            {K_CMD_ANGLE_FRONT_RIGHT,90-74},
+            {K_CMD_ANGLE_BACK_RIGHT,90+64},
+            {K_CMD_ANGLE_BACK_LEFT,90-64},
+            {K_CMD_WAIT_100MS,10},
 
-            {K_CMD_ANGLE_MIDLE,63},
-            {K_CMD_ANGLE_FRONT_LEFT,36},
-            {K_CMD_ANGLE_FRONT_RIGHT,144},
-            {K_CMD_ANGLE_BACK_RIGHT,36},
-            {K_CMD_ANGLE_BACK_LEFT,144},
-            {K_CMD_WAIT_100MS,20},
+            {K_CMD_ANGLE_MIDLE,90-45},
+            {K_CMD_ANGLE_FRONT_LEFT,90+74},
+            {K_CMD_ANGLE_FRONT_RIGHT,90-74},
+            {K_CMD_ANGLE_BACK_RIGHT,90+64},
+            {K_CMD_ANGLE_BACK_LEFT,90-64},
+            {K_CMD_WAIT_100MS,10},
 
-            {K_CMD_ANGLE_MIDLE,117},
-            {K_CMD_ANGLE_FRONT_LEFT,36},
-            {K_CMD_ANGLE_FRONT_RIGHT,144},
-            {K_CMD_ANGLE_BACK_RIGHT,36},
-            {K_CMD_ANGLE_BACK_LEFT,144},
-            {K_CMD_WAIT_100MS,20}
+            {K_CMD_ANGLE_MIDLE,90-45},
+            {K_CMD_ANGLE_FRONT_LEFT,90-74},
+            {K_CMD_ANGLE_FRONT_RIGHT,90+74},
+            {K_CMD_ANGLE_BACK_RIGHT,90-64},
+            {K_CMD_ANGLE_BACK_LEFT,90+64},
+            {K_CMD_WAIT_100MS,10},
+
+            {K_CMD_ANGLE_MIDLE,90+65},
+            {K_CMD_ANGLE_FRONT_LEFT,90-74},
+            {K_CMD_ANGLE_FRONT_RIGHT,90+74},
+            {K_CMD_ANGLE_BACK_RIGHT,90-64},
+            {K_CMD_ANGLE_BACK_LEFT,90+64},
+            {K_CMD_WAIT_100MS,10},
+
+            {K_CMD_REPEAT,0}
+
+        
+    };
+    static T_robotCmd stc_sitanim[]=
+    {
+
+            {K_CMD_SPEED,100},
+
+        {K_CMD_ANGLE_MIDLE,90},
+        {K_CMD_ANGLE_FRONT_LEFT,180},
+        {K_CMD_ANGLE_FRONT_RIGHT,180},
+        {K_CMD_ANGLE_BACK_RIGHT,0},
+        {K_CMD_ANGLE_BACK_LEFT,0},
+        {K_CMD_WAIT_100MS,100},
+
+        {K_CMD_ANGLE_MIDLE,90},
+        {K_CMD_ANGLE_FRONT_LEFT,180},
+        {K_CMD_ANGLE_FRONT_RIGHT,180},
+        {K_CMD_ANGLE_BACK_RIGHT,180},
+        {K_CMD_ANGLE_BACK_LEFT,180},
+        {K_CMD_WAIT_100MS,100},
+
+        {K_CMD_REPEAT,0}
     };
 
-    //copie standard anim
-    for(int i=0;i<sizeof(stc_standardAnim)/sizeof(T_robotCmd);i++)
-    {
-        lRobotState.animationCmdList[i]=stc_standardAnim[i];
-    }
+            //copie standard anim
+        for(int i=0;i<sizeof(stc_standardAnim)/sizeof(T_robotCmd);i++)
+        {
+            lRobotState.animationCmdList[i]=stc_standardAnim[i];
+        }
+
+        //copie standard anim
+        for(int i=0;i<sizeof(stc_sitanim)/sizeof(T_robotCmd);i++)
+        {
+          //  lRobotState.animationCmdList[i]=stc_sitanim[i];
+        }
 
 
     PB_ODR |= (1 << 5);
     enableInterrupts();
     static int enable=0;
+
+    float speedFactor=1.0;
+    float speedDir=1.0;
+
     while(1) 
     {
         
@@ -290,19 +326,26 @@ int main(void)
 
 
         int deltaTimeMs = gMsCounter;
-        gMsCounter=0;
        
-        uint8_t lByte;
-        if(uart_readChar(&lByte))
-        {
+       // uint8_t lByte;
+       // if(uart_readChar(&lByte))
+        //{
             
-            robotDecodeAndSaveCmd(lByte,&lRobotState);
-            enable=1;
+            //robotDecodeAndSaveCmd(lByte,&lRobotState);
+          //  enable=1;
+       // }
+
+        speedFactor+=(deltaTimeMs/2000.0 *speedDir);
+
+        if(speedFactor>6.0 && speedDir>0.0)speedDir=-1.0;
+        if(speedFactor<1.0 && speedDir<0.0)
+        {
+            speedDir=1.0;    
         }
 
-        if(enable)
+      //  if(enable)
         {
-            robotUpdateState(&lRobotState,deltaTimeMs*1000);
+            robotUpdateState(&lRobotState,deltaTimeMs*speedFactor);
 
             setPWM3(lRobotState.motor[0].pwm);
             setPWM4(lRobotState.motor[1].pwm);
@@ -310,5 +353,6 @@ int main(void)
             setPWM6(lRobotState.motor[3].pwm);
             setPWM7(lRobotState.motor[4].pwm);
         }
+        gMsCounter-=deltaTimeMs;
     }
 }

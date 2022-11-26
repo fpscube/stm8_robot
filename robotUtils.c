@@ -53,7 +53,7 @@ void robotDecodeAndSaveCmd(uint8_t pBufferByte,T_robotState *pRobotState)
 
 #define ABS(a) ((a>=0)?a:-a)
 
-void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
+void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInMs)
 {
     T_robotCmd lCurrRoboCmd;
     lCurrRoboCmd =  pRobotState->animationCmdList[pRobotState->animationCounter];
@@ -126,7 +126,7 @@ void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
             }
             else
             {
-                pRobotState->watingCounter -= pDeltaTimeInUs/100000;
+                pRobotState->watingCounter -= pDeltaTimeInMs/100;
                 if(pRobotState->watingCounter<=0)
                 {
                     pRobotState->wating=0;
@@ -143,7 +143,7 @@ void robotUpdateState(T_robotState *pRobotState,float pDeltaTimeInUs)
     {        
         float lAngle = pRobotState->motor[mi].angle;
         float lOrderAngle = pRobotState->motor[mi].orderAngle;
-        float lMaxDeltaAngle = pRobotState->motor[mi].speedLimit*pDeltaTimeInUs/1000000;
+        float lMaxDeltaAngle = pRobotState->motor[mi].speedLimit*pDeltaTimeInMs/1000;
         float lErrorAngle = lOrderAngle - lAngle;
 
         if(ABS(lErrorAngle) < lMaxDeltaAngle)
